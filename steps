@@ -1,0 +1,159 @@
+1. Fork the Assessment Repository
+
+    Go to the GitHub repository link provided in your assessment.
+    Click the "Fork" button in the upper right corner to create a copy of the repository under your GitHub account.
+
+2. Clone the Forked Repository
+
+    Clone the forked repository to your local machine.
+git clone https://github.com/your-username/assessment-repo.git
+cd assessment-repo
+3. Set Up the Notification Service (Node.js)
+
+    If the project isn't already initialized with Node.js, set it up:
+npm init -y
+
+Install necessary dependencies:
+npm install express nodemailer dotenv
+
+Create the basic structure for the notification service:
+mkdir src
+touch src/index.js .env
+
+Implement the basic service in `src/index.js`:
+const express = require('express');
+const nodemailer = require('nodemailer');
+require('dotenv').config();
+
+const app = express();
+app.use(express.json());
+
+app.post('/notify', async (req, res) => {
+  const { to, subject, text } = req.body;
+
+  try {
+    let transporter = nodemailer.createTransport({
+      service: 'Gmail',
+      auth: {
+        user: process.env.EMAIL,
+        pass: process.env.PASSWORD,
+      },
+    });
+
+    await transporter.sendMail({
+      from: process.env.EMAIL,
+      to,
+      subject,
+      text,
+    });
+
+    res.status(200).send('Notification sent successfully');
+  } catch (error) {
+    res.status(500).send('Error sending notification');
+  }
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
+
+Add your email credentials in the `.env` file:
+EMAIL=your-email@gmail.com
+PASSWORD=your-email-password
+PORT=3000
+
+4. Set Up the Cloud Infrastructure (AWS or GCP)
+
+    AWS Option:
+        EC2:
+            Launch an EC2 instance with Ubuntu.
+            SSH into the instance, install Node.js, and clone your GitHub repository.
+            Run your service using pm2 or nohup to keep it alive.
+        Elastic Beanstalk:
+            Package your application.
+            Deploy it using Elastic Beanstalk for easy scalability.
+        RDS (Optional for DB): If the service requires a database, set up an RDS instance.
+    GCP Option:
+        Compute Engine:
+            Launch a VM instance, SSH into it, and deploy the Node.js service.
+        App Engine:
+            Deploy your Node.js application on GCP's App Engine for auto-scaling.
+        Cloud SQL (Optional for DB): Set up a Cloud SQL instance if a database is required.
+5. Set Up CI/CD Pipeline
+
+    GitHub Actions:
+        Create a `.github/workflows/deploy.yml` file for CI/CD:
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+      
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '14'
+        
+    - name: Install dependencies
+      run: npm install
+      
+    - name: Run tests
+      run: npm test
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+    - name: Deploy to EC2/GCP
+      run: |
+        ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_IP }} << 'EOF'
+        cd /path/to/your/app
+        git pull origin main
+        npm install
+        pm2 restart all
+        EOF
+        Set the necessary secrets in the GitHub repository for SSH access to your EC2 instance or GCP VM.
+
+6. Test the CI/CD Pipeline
+
+    Push code changes to your repository and observe the GitHub Actions workflow to ensure it builds, tests, and deploys your application successfully.
+
+7. Prepare the Screencast
+
+    Use screen recording software like OBS Studio, Camtasia, or any tool of your choice.
+    Record the following:
+        Forking the repository.
+        Setting up the project locally.
+        Deploying the project to the cloud.
+        Demonstrating the CI/CD pipeline by pushing a code change and showing the automatic deployment.
+        Testing the notification service by sending a request to your deployed service.
+    Save the screencast and upload it to a video-sharing platform like YouTube or Vimeo.
+
+8. Raise a Pull Request
+
+    Push your final changes to your forked repository.
+    Go to the original repository and create a pull request from your forked branch to the main branch of the original repo.
+    Provide a detailed description of your implementation, including the CI/CD pipeline and deployment steps.
+
+9. Share the Pull Request and Screencast Links
+
+    Once the pull request is raised, copy the link.
+    Copy the link to your screencast as well.
+    Share both links as the final step.
+
+Example of the final response:
+
+    Pull Request Link: [Your PR Link Here]
+    Screencast Link: [Your Screencast Link Here]
+
+This should comprehensively guide you through building the cloud infrastructure and CI/CD pipeline for your Node.js-based Notification Service.
